@@ -1,0 +1,9 @@
+structure,burn_cost_inr,years_triggered,max_annual_inr
+"Netted annual index, strike 90% of AEP50",0.0,0,0.0
+"Netted annual index, strike 95% of AEP50",0.0,0,0.0
+"Netted annual index, strike 98% of AEP50",14.4,3,223.5
+"Netted annual index, strike 100% of AEP50",184.4,10,752.5
+"Monthly-accumulated AGS, deductible 0 kWh",512.0,20,1088.2
+"Monthly-accumulated AGS, deductible 60 kWh",209.5,14,743.2
+"Monthly-accumulated AGS, deductible 100 kWh",88.5,8,513.2
+"Monthly-accumulated AGS, deductible 140 kWh",25.3,3,283.2
