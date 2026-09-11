@@ -1,5 +1,0 @@
-variable,pearson_r,r_squared,unexplained_variance_pct,p_value
-GHI (SSRD),0.9966,0.9932,0.6842,0.0
-Mean temperature,0.2105,0.0443,95.5684,0.001
-Total precipitation,-0.5395,0.2911,70.8928,0.0
-Rain-day count,-0.682,0.4651,53.4934,0.0
