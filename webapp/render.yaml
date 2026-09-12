@@ -1,0 +1,26 @@
+# Render Blueprint. In the Render dashboard: New → Blueprint → pick this repo,
+# and it reads everything below.
+#
+# The one value not here is the Earth Engine key: it is a secret, so it is set
+# in the dashboard and never committed. Without it the app starts fine and then
+# answers 500 on the first pincode, which is the intended, legible failure.
+
+services:
+  - type: web
+    name: solar-pricing-workbench
+    runtime: docker
+    dockerfilePath: ./webapp/Dockerfile
+    dockerContext: ./webapp
+    region: singapore
+    plan: free
+    healthCheckPath: /api/health
+    autoDeploy: false
+    envVars:
+      # Nothing is written to a disk that outlives the process.
+      - key: EPHEMERAL_CACHE
+        value: "1"
+      - key: GEE_PROJECT
+        value: development-hruday
+      # sync:false means "ask me in the dashboard" - the key never enters git.
+      - key: EE_SERVICE_ACCOUNT_JSON
+        sync: false

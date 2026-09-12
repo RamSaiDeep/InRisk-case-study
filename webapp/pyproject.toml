@@ -1,0 +1,33 @@
+[project]
+name = "solar-pricing-workbench"
+version = "0.1.0"
+description = "Parametric weather-index insurance pricing workbench"
+requires-python = ">=3.13"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.34",
+    "pydantic>=2.10",
+    "httpx>=0.28",
+    "earthengine-api>=1.7.43",
+    "pandas>=2.2",
+    "pyarrow>=19.0",
+    "openpyxl>=3.1",
+    "markdown>=3.7",
+    "shapely>=2.1.2",
+]
+
+[dependency-groups]
+dev = ["pytest>=8.3"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = ["live: hits Google Earth Engine or bharatlas over the network"]
+addopts = "-m 'not live'"
+
+[build-system]
+requires = ["uv_build>=0.12.5,<0.13.0"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-root = ""
+module-name = ["pricing_engine", "data_layer", "api"]
