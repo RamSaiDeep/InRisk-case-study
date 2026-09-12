@@ -1,0 +1,31 @@
+{
+  "hash": "1c9ac99b",
+  "configHash": "4ae327e1",
+  "lockfileHash": "18b1893f",
+  "browserHash": "206c35e7",
+  "optimized": {
+    "@tanstack/react-query": {
+      "src": "../../node_modules/@tanstack/react-query/build/modern/index.js",
+      "file": "@tanstack_react-query.js",
+      "fileHash": "a68fb6aa",
+      "needsInterop": false
+    },
+    "react": {
+      "src": "../../node_modules/react/index.js",
+      "file": "react.js",
+      "fileHash": "90d99f7d",
+      "needsInterop": true
+    },
+    "react-dom/client": {
+      "src": "../../node_modules/react-dom/client.js",
+      "file": "react-dom_client.js",
+      "fileHash": "f15e968b",
+      "needsInterop": true
+    }
+  },
+  "chunks": {
+    "chunk-VO5D47E4": {
+      "file": "chunk-VO5D47E4.js"
+    }
+  }
+}

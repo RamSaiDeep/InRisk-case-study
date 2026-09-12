@@ -56,6 +56,38 @@ def _credentials_present() -> bool:
     return (_Path.home() / ".config" / "earthengine" / "credentials").exists()
 
 
+def _init_with_service_account(ee: Any, key: str, project: str) -> None:
+    """Authenticate as a service account, without ever quoting the key back.
+
+    Earth Engine raises with the whole credential dict in the message when a
+    key is rejected - private key included. This layer's errors are rendered
+    into HTTP responses, so re-raising that verbatim would publish the secret
+    to anyone who typed a pincode. Only the client email, which is not
+    secret, and the failure type make it out.
+    """
+    looks_inline = key.strip().startswith("{")
+    try:
+        blob = key if looks_inline else Path(key).read_text(encoding="utf-8")
+        info = json.loads(blob)
+    except (OSError, ValueError):
+        raise Misconfigured(
+            "EE_SERVICE_ACCOUNT_JSON is neither valid service-account JSON nor "
+            "a path to a readable key file"
+        ) from None
+    email = info.get("client_email")
+    if not email:
+        raise Misconfigured("the service account key has no client_email field") from None
+    try:
+        credentials = ee.ServiceAccountCredentials(email, key_data=blob)
+        ee.Initialize(credentials, project=project)
+    except Exception as exc:  # noqa: BLE001
+        raise UpstreamError(
+            f"Earth Engine rejected the service account {email} on project "
+            f"{project} ({type(exc).__name__}). Check that the account is "
+            f"granted Earth Engine access on that project."
+        ) from None
+
+
 def _init_ee() -> Any:
     """Initialize Earth Engine once per process."""
     global _ee_ready
@@ -68,22 +100,14 @@ def _init_ee() -> Any:
                 "locally, or set EE_SERVICE_ACCOUNT_JSON when deployed"
             )
         key = _service_account_key()
-        try:
-            if key:
-                blob = (
-                    Path(key).read_text(encoding="utf-8")
-                    if key.strip().startswith("{") is False and Path(key).exists()
-                    else key
-                )
-                info = json.loads(blob)
-                credentials = ee.ServiceAccountCredentials(
-                    info["client_email"], key_data=blob
-                )
-                ee.Initialize(credentials, project=os.environ.get("GEE_PROJECT", GEE_PROJECT))
-            else:
-                ee.Initialize(project=os.environ.get("GEE_PROJECT", GEE_PROJECT))
-        except Exception as exc:  # noqa: BLE001 - any failure here is upstream
-            raise UpstreamError(f"could not initialize Earth Engine: {exc}") from exc
+        project = os.environ.get("GEE_PROJECT", GEE_PROJECT)
+        if key:
+            _init_with_service_account(ee, key, project)
+        else:
+            try:
+                ee.Initialize(project=project)
+            except Exception as exc:  # noqa: BLE001 - any failure here is upstream
+                raise UpstreamError(f"could not initialize Earth Engine: {exc}") from exc
         _ee_ready = True
     return ee
 
