@@ -1,18 +1,10 @@
----
-title: Parametric Solar Cover
-emoji: ☀️
-colorFrom: blue
-colorTo: yellow
-sdk: docker
-app_port: 8080
-pinned: false
-short_description: Price a weather-index solar shortfall cover for any Indian pincode
----
-
-# Parametric Solar Cover — pricing workbench
+# The workbench
 
 Prices a parametric insurance contract against a below-normal year of
 sunshine, for any Indian pincode, from twenty years of ERA5-Land irradiance.
+
+The repository root [`README.md`](../README.md) covers the product and the
+case study it came from; this file is about the code.
 
 Generalised from a case study that priced one 3 kVA rooftop installation in
 Ahmedabad (pincode 380006); at those reference parameters this app reproduces
