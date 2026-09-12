@@ -26,15 +26,12 @@ bharatlas boundary file and build the centroid index, then ~50s for a 20-year
 Earth Engine fetch. Every later change for that pincode is instant, until the
 instance sleeps.
 
-To make the first click faster, bake the centroid index into the image (it is
-public reference data, not user data) by adding this after the `uv sync` line:
-
-```dockerfile
-RUN uv run --no-dev python -c "from data_layer.location import build_centroid_index; build_centroid_index()" \
-    && mv /tmp/pricing-cache-*/pincode_centroids.parquet /app/prebuilt.parquet
-```
-
-…and pointing `CENTROID_INDEX` at it. That removes the 12s, not the 50s.
+The centroid index is already baked into the image at build time
+(`PREBUILT_CENTROID_INDEX`), which removes the 12s and, more importantly,
+keeps the 19,312-polygon build off a small runtime instance. It is public
+reference data - every Indian pincode's centroid and outline - so shipping it
+stores nothing about anyone. The ~50s Earth Engine fetch per new pincode
+remains.
 
 ## Earth Engine access
 
@@ -73,9 +70,9 @@ oversight.
 |---|---|---|
 | **Google Cloud Run** | best | Same cloud as Earth Engine, so the service account attaches natively with no key file. `/tmp` is a tmpfs, matching the no-storage requirement exactly. Scales to zero, so an idle demo costs nothing — at the price of a cold start. Set **max instances 1**. |
 | **Fly.io** | good | Docker-native, one small machine, scale to zero. Needs the JSON key as a secret. |
-| **Render** | good | Point it at the Dockerfile; set instances to 1. The free tier sleeps after 15 minutes, so the first visitor pays the cold start plus the fetch. |
+| **Render** | good, and simplest from GitHub | `render.yaml` is in the repo: New -> Blueprint -> pick the repo -> paste the Earth Engine key. The free tier has 512 MB and sleeps after 15 minutes, so the first visitor pays a cold start plus the fetch. Workable because the pincode index is prebuilt; without that it would likely run out of memory. |
 | **Railway** | good | Same shape as Render, simpler dashboard, no free tier now. |
-| **Hugging Face Spaces (Docker)** | fine for a demo | Free and public, secrets supported. Cold starts and a public URL you cannot rate-limit. |
+| **Hugging Face Spaces (Docker)** | fine, but a second remote | 16 GB of RAM free, which is generous for this. Spaces have no GitHub integration, so the code has to be pushed to the Space's own git repo as well as to GitHub. |
 | Vercel / Netlify | **no** | Serverless functions cannot hold job state between requests, have short execution limits, and cannot run Chromium. They are fine for the frontend alone, but the backend does not fit. |
 
 ### Cloud Run, end to end

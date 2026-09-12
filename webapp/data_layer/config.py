@@ -60,8 +60,16 @@ else:
     CACHE_DIR = Path(__file__).resolve().parent.parent / "cache"
 
 METADATA_FILE = CACHE_DIR / "metadata.json"
-CENTROID_INDEX = CACHE_DIR / "pincode_centroids.parquet"
 SERIES_DIR = CACHE_DIR / "series"
+
+# PREBUILT_CENTROID_INDEX points at an index baked into the image at build
+# time. It is public reference data - every Indian pincode's centroid and
+# outline - so shipping it stores nothing about anyone, and it keeps the
+# 19,312-polygon build off a small runtime instance.
+CENTROID_INDEX = Path(
+    os.environ.get("PREBUILT_CENTROID_INDEX")
+    or CACHE_DIR / "pincode_centroids.parquet"
+)
 
 #: True when nothing survives this process. The UI says so, rather than
 #: promising a speed that will not be there on the next visit.

@@ -39,6 +39,11 @@ COPY data_layer/ ./data_layer/
 COPY api/ ./api/
 RUN uv sync --frozen --no-dev
 
+# Build the pincode index here rather than on the first request: it needs all
+# 19,312 polygons in memory at once, which a 512 MB instance may not have.
+ENV PREBUILT_CENTROID_INDEX=/app/reference/pincode_centroids.parquet
+RUN mkdir -p /app/reference     && uv run --no-dev python -c "from data_layer.location import build_centroid_index; build_centroid_index()"
+
 COPY --from=ui /ui/dist ./ui/dist
 
 # Cloud Run and most PaaS hosts hand the port in as $PORT.
