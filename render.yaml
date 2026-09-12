@@ -1,5 +1,6 @@
-# Render Blueprint. In the Render dashboard: New → Blueprint → pick this repo,
-# and it reads everything below.
+# Render Blueprint. Must sit at the repository root: Render only looks here.
+# In the dashboard: New -> Blueprint -> pick this repo, and it reads the rest
+# from below. The app itself lives in webapp/.
 #
 # The one value not here is the Earth Engine key: it is a secret, so it is set
 # in the dashboard and never committed. Without it the app starts fine and then
