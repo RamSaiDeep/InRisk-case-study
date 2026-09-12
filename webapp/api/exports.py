@@ -8,10 +8,10 @@ from __future__ import annotations
 
 from typing import Any
 
-from fastapi.responses import Response, StreamingResponse
+from fastapi.responses import JSONResponse, Response, StreamingResponse
 
 from data_layer import cache
-from data_layer.config import NotCached
+from data_layer.config import REPORT_EXPORT_ENABLED, NotCached
 from pricing_engine import PricingResult
 
 from .contract_terms import DEFAULT_TERMS
@@ -54,6 +54,14 @@ def xlsx_response(request: Any, result: PricingResult) -> StreamingResponse:
 
 
 def report_response(request: Any, result: PricingResult) -> Response:
+    if not REPORT_EXPORT_ENABLED:
+        return JSONResponse(
+            status_code=503,
+            content={
+                "detail": "the report export is switched off on this instance",
+                "kind": "export_disabled",
+            },
+        )
     pdf = build_pdf(result, request.inputs.to_engine(), _meta(request), DEFAULT_TERMS)
     filename = f"Solar_Parametric_{request.pincode}_{request.start_year}-{request.end_year}.pdf"
     return Response(

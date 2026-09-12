@@ -80,6 +80,12 @@ CACHE_IS_EPHEMERAL = bool(
 
 HTTP_TIMEOUT = 300.0
 
+# The PDF export renders through headless Chrome, which wants a core and a few
+# hundred MB. On a small instance it is slow enough to look broken, so it can
+# be switched off: the endpoint then says so plainly and the UI hides the
+# button rather than offering something that will disappoint.
+REPORT_EXPORT_ENABLED = os.environ.get("ENABLE_REPORT_EXPORT", "1") != "0"
+
 
 class DataLayerError(Exception):
     """Base for everything this layer raises."""

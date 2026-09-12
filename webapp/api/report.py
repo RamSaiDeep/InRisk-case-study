@@ -302,6 +302,14 @@ def build_pdf(
                 str(browser),
                 "--headless",
                 "--disable-gpu",
+                # Containers run as root, and Chrome refuses to start as root
+                # with its sandbox on. The sandbox buys nothing here: the only
+                # page it ever opens is one this process just wrote to a temp
+                # directory.
+                "--no-sandbox",
+                # /dev/shm is 64 MB by default in most containers, which
+                # Chrome exhausts and then crashes.
+                "--disable-dev-shm-usage",
                 "--no-pdf-header-footer",
                 f"--print-to-pdf={target}",
                 source.as_uri(),

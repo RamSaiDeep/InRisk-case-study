@@ -22,6 +22,11 @@ services:
         value: "1"
       - key: GEE_PROJECT
         value: development-hruday
+      # Off on the free tier: headless Chrome wants a core and a few hundred
+      # MB, and this plan has 0.1 CPU and 512 MB. Set to 1 on a larger plan
+      # and the button comes back on its own.
+      - key: ENABLE_REPORT_EXPORT
+        value: "0"
       # sync:false means "ask me in the dashboard" - the key never enters git.
       - key: EE_SERVICE_ACCOUNT_JSON
         sync: false

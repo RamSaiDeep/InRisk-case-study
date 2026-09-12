@@ -18,6 +18,7 @@ from data_layer import cache, jobs, location
 from data_layer.config import (
     CACHE_IS_EPHEMERAL,
     ERA5_CELL_DEG,
+    REPORT_EXPORT_ENABLED,
     Misconfigured,
     NotCached,
     PincodeNotFound,
@@ -115,6 +116,7 @@ def health() -> dict[str, object]:
         # A deployed instance keeps nothing between restarts, so the frontend
         # can say that rather than implying the fetch is a one-off.
         "ephemeral": CACHE_IS_EPHEMERAL,
+        "report_export": REPORT_EXPORT_ENABLED,
     }
 
 

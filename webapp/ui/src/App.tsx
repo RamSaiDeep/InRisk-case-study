@@ -93,6 +93,9 @@ export function App() {
 
   const health = useQuery({ queryKey: ["health"], queryFn: api.health });
   const latestYear = health.data?.latest_complete_year ?? 2024;
+  // Hidden rather than removed: the endpoint is still there, and a bigger
+  // instance turns it back on with one environment variable.
+  const reportExport = health.data?.report_export ?? false;
   const [range, setRange] = useState<{ start: number; end: number } | null>(
     saved?.years ?? null,
   );
@@ -278,7 +281,7 @@ export function App() {
         stage.name === "workspace" || (stage.name === "steps" && completed) ? (
           <>
             <button onClick={() => download("xlsx")}>Workbook</button>
-            <button onClick={() => download("report")}>Report</button>
+            {reportExport && <button onClick={() => download("report")}>Report</button>}
             <button
               onClick={() => {
                 setResumed(false);

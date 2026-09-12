@@ -43,7 +43,14 @@ async function request<T>(path: string, body?: unknown, signal?: AbortSignal): P
 }
 
 export const api = {
-  health: () => request<{ status: string; latest_complete_year: number }>("/api/health"),
+  health: () =>
+    request<{
+      status: string;
+      latest_complete_year: number;
+      ephemeral: boolean;
+      /** False where the instance is too small to render a PDF worth waiting for. */
+      report_export: boolean;
+    }>("/api/health"),
 
   resolveLocation: (pincode: string) =>
     request<LocationResponse>("/api/location", { pincode }),

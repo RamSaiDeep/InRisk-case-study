@@ -243,3 +243,32 @@ def test_report_endpoint_returns_a_pdf(seeded):
     assert response.headers["content-type"] == "application/pdf"
     assert response.content.startswith(b"%PDF")
     assert len(response.content) > 20_000
+
+
+def test_report_export_can_be_switched_off(seeded, monkeypatch):
+    """Hidden, not removed: the endpoint says plainly that it is off, and the
+    frontend hides the button on the strength of /api/health."""
+    from api import exports
+
+    monkeypatch.setattr(exports, "REPORT_EXPORT_ENABLED", False)
+    response = seeded.post("/api/export/report", json=REFERENCE_PAYLOAD)
+    assert response.status_code == 503
+    assert response.json()["kind"] == "export_disabled"
+    # The workbook is unaffected.
+    assert seeded.post("/api/export/xlsx", json=REFERENCE_PAYLOAD).status_code == 200
+
+
+def test_health_advertises_whether_the_report_export_exists(client):
+    assert "report_export" in client.get("/api/health").json()
+
+
+def test_pdf_runs_chrome_without_its_sandbox():
+    """Containers run as root, where Chrome refuses to start with the sandbox
+    on - the failure that took the export down on the first deploy."""
+    import inspect
+
+    from api import report
+
+    source = inspect.getsource(report.build_pdf)
+    assert "--no-sandbox" in source
+    assert "--disable-dev-shm-usage" in source
