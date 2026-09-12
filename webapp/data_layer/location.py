@@ -9,6 +9,7 @@ from __future__ import annotations
 import io
 import json
 import os
+from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
@@ -209,14 +210,24 @@ def build_centroid_index(client: httpx.Client | None = None) -> None:
     )
 
 
-def _index_table() -> Any:
-    """The local index, rebuilt if it predates the outline column."""
+def _ensure_index() -> None:
+    """Build the index if it is missing or predates the outline column."""
     if CENTROID_INDEX.exists():
-        table = pq.read_table(CENTROID_INDEX)
-        if "outline" in table.column_names:
-            return table
+        if "outline" in pq.read_schema(CENTROID_INDEX).names:
+            return
     build_centroid_index()
-    return pq.read_table(CENTROID_INDEX)
+
+
+@lru_cache(maxsize=1)
+def _coords_table() -> Any:
+    """Pincodes and their centroids, held in memory.
+
+    Only three narrow columns: reading the whole index instead pulls the
+    outline column too, which is 7 MB of geometry nobody asked for and cost
+    47 ms on every single resolve.
+    """
+    _ensure_index()
+    return pq.read_table(CENTROID_INDEX, columns=["pincode", "lon", "lat"])
 
 
 def _row_for(pincode: str, table: Any) -> int:
@@ -227,16 +238,20 @@ def _row_for(pincode: str, table: Any) -> int:
         raise PincodeNotFound(f"pincode {pincode} has no boundary polygon") from exc
 
 
+@lru_cache(maxsize=32)
 def get_pincode_outline(pincode: str) -> list[list[float]]:
     """The pincode's outer ring as [lon, lat] pairs, for drawing only.
 
     Interior rings are dropped and a multi-part pincode yields its largest
     part: this is a locator sketch, not a survey.
     """
-    table = _index_table()
-    geometry = shapely.from_wkb(
-        table.column("outline")[_row_for(pincode, table)].as_py()
-    )
+    _ensure_index()
+    # The geometry column is only wanted here, on a pincode the user is
+    # actually looking at, so it is read on demand and remembered per pincode
+    # rather than kept resident for all 19,312.
+    row = _row_for(pincode, _coords_table())
+    table = pq.read_table(CENTROID_INDEX, columns=["outline"])
+    geometry = shapely.from_wkb(table.column("outline")[row].as_py())
     if geometry.geom_type == "MultiPolygon":
         geometry = max(geometry.geoms, key=lambda part: part.area)
     return [[round(x, 6), round(y, 6)] for x, y in geometry.exterior.coords]
@@ -249,7 +264,7 @@ def get_pincode_centroid(pincode: str) -> tuple[float, float]:
     centroid for the reference pincode: the two agree to within 3 cm, far
     inside a ~9 km ERA5-Land cell.
     """
-    table = _index_table()
+    table = _coords_table()
     row = _row_for(pincode, table)
     return (
         float(table.column("lon")[row].as_py()),
