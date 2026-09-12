@@ -72,8 +72,22 @@ oversight.
 | **Fly.io** | good | Docker-native, one small machine, scale to zero. Needs the JSON key as a secret. |
 | **Render** | good, and simplest from GitHub | `render.yaml` is in the repo: New -> Blueprint -> pick the repo -> paste the Earth Engine key. The free tier has 512 MB and sleeps after 15 minutes, so the first visitor pays a cold start plus the fetch. Workable because the pincode index is prebuilt; without that it would likely run out of memory. |
 | **Railway** | good | Same shape as Render, simpler dashboard, no free tier now. |
-| **Hugging Face Spaces (Docker)** | fine, but a second remote | 16 GB of RAM free, which is generous for this. Spaces have no GitHub integration, so the code has to be pushed to the Space's own git repo as well as to GitHub. |
+| **Hugging Face Spaces (Docker)** | most generous free tier | 2 vCPU and 16 GB free - 20x the CPU and 32x the memory of Render's free tier, and more CPU than Render's $25 plan. Sleeps after 48 hours rather than 15 minutes, so a warmed cache actually survives a demo. Two costs: the free tier is US-hosted, which adds roughly 150 ms of round trip from India on every interaction, and Spaces have no GitHub integration, so the code is pushed to the Space's own git repo as well. |
 | Vercel / Netlify | **no** | Serverless functions cannot hold job state between requests, have short execution limits, and cannot run Chromium. They are fine for the frontend alone, but the backend does not fit. |
+
+### Hugging Face Spaces, end to end
+
+The Space repo's root has to be the Dockerfile's directory, so `webapp/` is
+pushed as the root using a subtree:
+
+```bash
+git remote add space https://huggingface.co/spaces/ramasaideepv/parametric-solar-cover
+git subtree push --prefix=webapp space main
+```
+
+`README.md` already carries the Space frontmatter (`sdk: docker`,
+`app_port: 8080`). Set `EE_SERVICE_ACCOUNT_JSON` under Settings -> Variables
+and secrets, as a **secret**, not a variable.
 
 ### Cloud Run, end to end
 
