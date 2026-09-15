@@ -1,63 +1,76 @@
-import type { ReactNode } from "react";
+// The frame every screen sits in: who built it, what it is, and a footer that
+// credits the two datasets the product depends on - licence conditions as
+// much as decoration.
 
-// The frame every screen sits in. A masthead that always says what this is
-// and where you are, and a footer that credits the two datasets the whole
-// product depends on - both are licence conditions as much as decoration.
+export const PRODUCT = "HelioCover";
+export const OWNER = "Ram Sai Deep Vinjamuri";
 
-export function Mark() {
+export function Mark({ size = 34 }: { size?: number }) {
   return (
-    <svg width="26" height="26" viewBox="0 0 26 26" aria-hidden className="mark">
-      <circle cx="13" cy="13" r="5.5" fill="var(--accent)" />
-      {Array.from({ length: 8 }, (_, i) => {
-        const angle = (i * Math.PI) / 4;
-        return (
-          <line
-            key={i}
-            x1={13 + Math.cos(angle) * 8}
-            y1={13 + Math.sin(angle) * 8}
-            x2={13 + Math.cos(angle) * 11}
-            y2={13 + Math.sin(angle) * 11}
-            stroke="var(--accent)"
-            strokeWidth="2"
-            strokeLinecap="round"
-            opacity={0.55}
-          />
-        );
-      })}
+    <svg width={size} height={size} viewBox="0 0 40 40" aria-hidden className="mark">
+      <defs>
+        <linearGradient id="mark-sun" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="#f7c948" />
+          <stop offset="1" stopColor="#f08c2e" />
+        </linearGradient>
+        <linearGradient id="mark-panel" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#1f5fbf" />
+          <stop offset="1" stopColor="#003a8c" />
+        </linearGradient>
+      </defs>
+      <circle cx="20" cy="20" r="19" fill="#eef4fa" />
+      <circle cx="24" cy="15" r="6.5" fill="url(#mark-sun)" />
+      <path d="M6 30 L16 21 H34 L26 30 Z" fill="url(#mark-panel)" />
+      <path d="M11 25.5 H30 M21 21 L16 30" stroke="#eef4fa" strokeWidth="1.1" />
     </svg>
   );
 }
 
-export function Shell({
-  context,
-  actions,
-  children,
-}: {
-  /** Where the user is, shown in the masthead once a pincode is resolved. */
-  context?: ReactNode;
-  actions?: ReactNode;
-  children: ReactNode;
-}) {
+export function Header() {
   return (
-    <div className="shell">
-      <header className="masthead">
-        <div className="masthead-inner">
-          <div className="brand">
-            <Mark />
-            <div>
-              <div className="brand-name">Parametric Solar Cover</div>
-              <div className="brand-sub">Weather-index pricing workbench</div>
+    <header className="masthead">
+      <div className="container masthead-inner">
+        <a className="brand" href="./" aria-label={`${PRODUCT} home`}>
+          <Mark />
+          <span className="brand-text">
+            <span className="brand-name">{PRODUCT}</span>
+            <span className="brand-owner">by {OWNER}</span>
+          </span>
+        </a>
+        <nav className="nav" aria-label="Sections">
+          <a href="#how">How it works</a>
+          <a
+            className="cta"
+            href="#price"
+            onClick={() => document.getElementById("pincode")?.focus({ preventScroll: true })}
+          >
+            Price a pincode
+          </a>
+        </nav>
+      </div>
+    </header>
+  );
+}
+
+export function Footer() {
+  const year = new Date().getFullYear();
+  return (
+    <footer className="foot">
+      <div className="container">
+        <div className="foot-top">
+          <div className="foot-brand">
+            <div className="brand">
+              <Mark size={30} />
+              <span className="brand-text">
+                <span className="brand-name">{PRODUCT}</span>
+                <span className="brand-owner">by {OWNER}</span>
+              </span>
             </div>
+            <p>
+              A weather-index cover against a below-normal year of sunshine,
+              priced for any Indian pincode from public satellite-era data.
+            </p>
           </div>
-          {context && <div className="masthead-context">{context}</div>}
-          {actions && <div className="masthead-actions">{actions}</div>}
-        </div>
-      </header>
-
-      <main className="shell-main">{children}</main>
-
-      <footer className="foot">
-        <div className="foot-inner">
           <div>
             <strong>Weather data</strong>
             <p>
@@ -73,40 +86,15 @@ export function Shell({
               (GODL-India). Voronoi approximations, not surveyed.
             </p>
           </div>
-          <div>
-            <strong>Method</strong>
-            <p>
-              Burn cost over the years you select, plus a standard-deviation
-              risk margin, grossed up for expenses and profit.
-            </p>
-          </div>
         </div>
-      </footer>
-    </div>
-  );
-}
-
-export function LocationChip({
-  pincode,
-  office,
-  lat,
-  lon,
-}: {
-  pincode: string;
-  office?: string;
-  lat: number;
-  lon: number;
-}) {
-  return (
-    <div className="chip">
-      <span className="chip-dot" />
-      <span>
-        <strong>{pincode}</strong>
-        {office ? ` · ${office}` : ""}
-      </span>
-      <span className="chip-coords">
-        {lat.toFixed(3)}°N, {lon.toFixed(3)}°E
-      </span>
-    </div>
+        <div className="foot-bottom">
+          <span>
+            © {year} {OWNER}. {PRODUCT} is designed, modelled and built by{" "}
+            {OWNER}. All rights reserved.
+          </span>
+          <span>Illustrative pricing - not an offer of insurance.</span>
+        </div>
+      </div>
+    </footer>
   );
 }

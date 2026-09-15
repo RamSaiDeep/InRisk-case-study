@@ -34,24 +34,28 @@ have paid; none reached the most severe band.
 
 ## The app
 
-The workbench generalises that one contract to **any Indian pincode**. It
-resolves the pincode to its ERA5-Land cell, pulls twenty years of irradiance,
-and then lets you shape and price a contract against it interactively — every
-figure recomputing as you type.
+**HelioCover**, by Ram Sai Deep Vinjamuri, takes that one contract to **any
+Indian pincode**. A visitor enters a pincode and nothing else: the rooftop,
+tariff, bands, loadings and 2005–2024 pricing window are the workbook's terms,
+held fixed. What changes on screen is only the location, which is the point.
+It shows that the same policy design scales across the country.
 
-At the case study's parameters it reproduces the submitted numbers exactly,
-which is the regression test the whole thing is built around.
+At 380006 it reproduces the submitted ₹137.48 exactly, which is the regression
+test the whole thing is built around.
 
-1. **Find the cell** — the pincode boundary gives a centroid, which snaps to
-   the ERA5-Land grid cell that settles every claim. The confirmation screen
-   draws both, to scale: the cell is far larger than most pincodes, which is
-   the basis risk made visible.
+1. **Locate** — the pincode boundary gives a centroid, which snaps to the
+   ERA5-Land grid cell that settles every claim. The policy page draws both,
+   to scale: the cell is far larger than most pincodes, which is the basis
+   risk made visible.
 2. **Pull the record** — daily SSRD from Google Earth Engine, a year at a
    time, with progress reported as it goes.
-3. **Shape the contract** — units insured, tariff, how many severity bands,
-   where each ends, what each pays. The backtest re-runs on every change.
-4. **Price and export** — burn cost, risk margin, loadings, and a workbook
-   whose formulas are live rather than baked.
+3. **Price** — the premium and its build-up, coverage terms, a payout sheet
+   with the twenty-year backtest, and the same book scaled from one rooftop
+   to 10,000.
+
+`?pincode=380006` in the address opens straight onto that pincode's policy.
+The API still accepts any contract (and serves the workbook export). The UI
+just doesn't expose any of it.
 
 ### How it is put together
 
@@ -60,7 +64,7 @@ which is the regression test the whole thing is built around.
 | `webapp/pricing_engine/` | The model. Pure functions, standard library only — no file reads, no network, nothing to mock. This is what makes re-pricing on every keystroke cost about 5 ms. |
 | `webapp/data_layer/` | The only layer that touches the network: bharatlas for pincode boundaries, Earth Engine for irradiance, a parquet cache, an in-memory job manager for the slow fetch. |
 | `webapp/api/` | Thin HTTP wrappers — one call each — plus the workbook and report formatters. |
-| `webapp/ui/` | React + TypeScript. A guided flow through the inputs, then a dashboard you can jump back into anywhere. |
+| `webapp/ui/` | React + TypeScript. One pincode input, then a read-only policy page. |
 
 The engine knows nothing about HTTP, the API contains no formulas, and the
 data layer is the only thing that can fail because someone else's server is

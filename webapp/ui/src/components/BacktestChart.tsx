@@ -241,6 +241,9 @@ export function BacktestChart({
               textAnchor={nearRightEdge ? "end" : "middle"}
               fontSize={10.5}
               fill="var(--ink-secondary)"
+              stroke="var(--surface-1)"
+              strokeWidth={4}
+              style={{ paintOrder: "stroke" }}
             >
               {closest.distance_to_edge.toFixed(0)} kWh from the next band
             </text>
