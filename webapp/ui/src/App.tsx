@@ -3,11 +3,11 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ApiError, POLICY, api } from "./api";
 import type { LocationResponse, PriceResponse } from "./types";
 import { Footer, Header } from "./components/Shell";
-import { Hero, HowItWorks } from "./components/Hero";
-import { Policy } from "./components/Policy";
+import { InputPage } from "./components/InputPage";
+import { PolicyPage } from "./components/PolicyPage";
 
 // One input, one output. A visitor gives a pincode; everything else - the
-// rooftop, the tariff, the bands, the loadings - is the submitted contract,
+// unit, the tariff, the bands, the loadings - is the submitted contract,
 // held fixed, so the only thing that varies on screen is the location.
 
 export type Status =
@@ -22,6 +22,10 @@ function describe(error: unknown, pincode: string): string {
     case "pincode_not_found":
       return `Pincode ${pincode} isn't in the India Post boundary set. Check the six digits.`;
     case "upstream_error":
+      // ERA5-Land is land-only: a pincode whose centre falls on a sea cell
+      // has no reading at all, which retrying will not change.
+      if (error.message.includes("no ERA5-Land cell"))
+        return `Pincode ${pincode} is on the coast, where the weather grid has no land reading. Try a nearby inland pincode.`;
       return "A data provider didn't answer. Please try again in a moment.";
     case "job_not_found":
       return "The server restarted while the data was downloading. Please try again.";
@@ -67,7 +71,10 @@ function usePolicy(pincode: string | null): Status {
     return {
       name: "error",
       message: describe(failure, pincode),
-      retryable: !(failure instanceof ApiError && failure.kind === "pincode_not_found"),
+      retryable: !(
+        failure instanceof ApiError &&
+        (failure.kind === "pincode_not_found" || failure.message.includes("no ERA5-Land cell"))
+      ),
     };
   if (job.data?.status === "error")
     return {
@@ -94,50 +101,72 @@ function pincodeFromUrl(): string | null {
   return value && /^\d{6}$/.test(value) ? value : null;
 }
 
+// Two pages, told apart by the address alone: "/" takes the pincode, and
+// "/?pincode=380006" is that pincode's policy - so a policy link can be shared
+// and the browser's back button returns to the input page.
 export function App() {
   const queryClient = useQueryClient();
+  const [page, setPage] = useState<string | null>(pincodeFromUrl);
   const [draft, setDraft] = useState(() => pincodeFromUrl() ?? "");
   const [active, setActive] = useState<string | null>(pincodeFromUrl);
   const status = usePolicy(active);
 
-  const submit = (pincode: string) => {
-    setDraft(pincode);
-    if (pincode === active) {
-      if (status.name === "error")
-        queryClient.resetQueries({ predicate: (query) => query.queryKey[1] === pincode });
-      return;
-    }
-    setActive(pincode);
-    // A shareable address: the link opens straight onto this pincode's policy.
-    window.history.replaceState(null, "", `?pincode=${pincode}`);
+  const go = (pincode: string | null) => {
+    window.history.pushState(null, "", pincode ? `?pincode=${pincode}` : "./");
+    setPage(pincode);
+    window.scrollTo({ top: 0 });
   };
 
-  // Bring the policy into view once, when it first arrives for a pincode.
-  const results = useRef<HTMLDivElement>(null);
-  const shown = useRef<string | null>(null);
   useEffect(() => {
-    if (status.name !== "ready" || shown.current === active) return;
-    shown.current = active;
-    results.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-  }, [status.name, active]);
+    const onPop = () => {
+      const pincode = pincodeFromUrl();
+      setPage(pincode);
+      if (pincode) {
+        setActive(pincode);
+        setDraft(pincode);
+      }
+    };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, []);
+
+  // A pincode submitted on the input page is priced there, with progress in
+  // view, and the visitor moves to the policy page once it is ready.
+  const awaiting = useRef<string | null>(null);
+  useEffect(() => {
+    if (status.name === "ready" && awaiting.current === active && page === null) {
+      awaiting.current = null;
+      go(active);
+    }
+  }, [status.name, active, page]);
+
+  const submit = (pincode: string) => {
+    setDraft(pincode);
+    awaiting.current = pincode;
+    if (pincode !== active) return setActive(pincode);
+    if (status.name === "ready") {
+      awaiting.current = null;
+      go(pincode);
+    } else if (status.name === "error") {
+      queryClient.resetQueries({ predicate: (query) => query.queryKey[1] === pincode });
+    }
+  };
 
   return (
-    <div className="page">
-      <Header />
+    <div className={page ? "page" : "page page-input"}>
+      <Header page={page ? "policy" : "input"} onHome={() => go(null)} />
       <main className="container">
-        <Hero
-          draft={draft}
-          onDraft={setDraft}
-          onSubmit={submit}
-          status={status}
-          active={active}
-        />
-        <div ref={results} className="results-anchor">
-          {status.name === "ready" && (
-            <Policy location={status.location} result={status.result} />
-          )}
-        </div>
-        <HowItWorks />
+        {page ? (
+          <PolicyPage pincode={page} status={status} onBack={() => go(null)} />
+        ) : (
+          <InputPage
+            draft={draft}
+            onDraft={setDraft}
+            onSubmit={submit}
+            status={status}
+            active={active}
+          />
+        )}
       </main>
       <Footer />
     </div>

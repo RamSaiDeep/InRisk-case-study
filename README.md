@@ -34,9 +34,9 @@ have paid; none reached the most severe band.
 
 ## The app
 
-**HelioCover**, by Ram Sai Deep Vinjamuri, takes that one contract to **any
-Indian pincode**. A visitor enters a pincode and nothing else: the rooftop,
-tariff, bands, loadings and 2005–2024 pricing window are the workbook's terms,
+The **InRisk Labs Solar Yield Cover Solution** prototype takes that one
+contract to **any Indian pincode**. A
+visitor enters a pincode and nothing else: the 3 kVA unit, tariff, bands, loadings and 2005–2024 pricing window are the workbook's terms,
 held fixed. What changes on screen is only the location, which is the point.
 It shows that the same policy design scales across the country.
 
@@ -50,10 +50,10 @@ test the whole thing is built around.
 2. **Pull the record** — daily SSRD from Google Earth Engine, a year at a
    time, with progress reported as it goes.
 3. **Price** — the premium and its build-up, coverage terms, a payout sheet
-   with the twenty-year backtest, and the same book scaled from one rooftop
-   to 10,000.
+   with the twenty-year backtest, and the premium for 1 to 10,000 units.
 
-`?pincode=380006` in the address opens straight onto that pincode's policy.
+It is two pages: `/` takes the pincode, and `/?pincode=380006` is that
+pincode's policy, so a policy link can be shared directly.
 The API still accepts any contract (and serves the workbook export). The UI
 just doesn't expose any of it.
 

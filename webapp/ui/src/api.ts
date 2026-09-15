@@ -65,8 +65,8 @@ export const api = {
 };
 
 /** The contract, fixed. These are the submitted workbook's terms - one 3 kVA
- *  rooftop at 380006 prices to exactly its ₹137.48 - and the only thing a
- *  visitor changes is where the rooftop is. */
+ *  unit at 380006 prices to exactly its ₹137.48 - and the only thing a
+ *  visitor changes is where the unit is. */
 export const POLICY = {
   startYear: 2005,
   endYear: 2024,
@@ -82,6 +82,3 @@ export const POLICY = {
     profit_pct: 0.075,
   } satisfies Inputs,
 };
-
-/** Bundled with the pincode boundary index the backend resolves against. */
-export const PINCODE_COUNT = 19312;
